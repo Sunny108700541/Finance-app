@@ -41,10 +41,10 @@ const EditTransaction = () => {
       const transaction = response.data
 
       setFormData({
-        title: transaction.title,
-        amount: transaction.amount.toString(),
-        date: new Date(transaction.date).toISOString().split("T")[0],
-        category: transaction.category,
+        title: transaction.title || "",
+        amount: transaction.amount?.toString() || "",
+        date: transaction.date ? new Date(transaction.date).toISOString().split("T")[0] : "",
+        category: transaction.category || "Other",
       })
       setError("")
     } catch (err) {
