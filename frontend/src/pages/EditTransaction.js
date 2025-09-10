@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import axios from "axios"
+import { transactionAPI } from "../services/api"
+import { useToast } from "../components/Toast"
+import LoadingSpinner from "../components/LoadingSpinner"
 
 const EditTransaction = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { success, error: showError } = useToast()
   const [formData, setFormData] = useState({
     title: "",
     amount: "",
@@ -37,18 +40,24 @@ const EditTransaction = () => {
   const fetchTransaction = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`/api/transactions/${id}`)
+      setError("")
+      const response = await transactionAPI.getById(id)
       const transaction = response.data
+
+      if (!transaction) {
+        throw new Error("Transaction not found")
+      }
 
       setFormData({
         title: transaction.title || "",
-        amount: transaction.amount?.toString() || "",
+        amount: transaction.amount !== undefined && transaction.amount !== null ? transaction.amount.toString() : "",
         date: transaction.date ? new Date(transaction.date).toISOString().split("T")[0] : "",
         category: transaction.category || "Other",
       })
-      setError("")
     } catch (err) {
-      setError("Failed to fetch transaction. Please try again.")
+      const errorMessage = err.userMessage || "Failed to fetch transaction. Please try again."
+      setError(errorMessage)
+      showError(errorMessage)
       console.error("Error fetching transaction:", err)
     } finally {
       setLoading(false)
@@ -69,15 +78,29 @@ const EditTransaction = () => {
     setError("")
 
     try {
+      if (!formData.title.trim()) {
+        throw new Error("Title is required")
+      }
+      if (!formData.amount || isNaN(Number.parseFloat(formData.amount))) {
+        throw new Error("Valid amount is required")
+      }
+      if (!formData.date) {
+        throw new Error("Date is required")
+      }
+
       const transactionData = {
         ...formData,
+        title: formData.title.trim(),
         amount: Number.parseFloat(formData.amount),
       }
 
-      await axios.put(`/api/transactions/${id}`, transactionData)
+      await transactionAPI.update(id, transactionData)
+      success("Transaction updated successfully!")
       navigate("/")
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update transaction. Please try again.")
+      const errorMessage = err.userMessage || err.message || "Failed to update transaction. Please try again."
+      setError(errorMessage)
+      showError(errorMessage)
       console.error("Error updating transaction:", err)
     } finally {
       setSaving(false)
@@ -85,7 +108,7 @@ const EditTransaction = () => {
   }
 
   if (loading) {
-    return <div className="loading">Loading transaction...</div>
+    return <LoadingSpinner size="large" text="Loading transaction..." />
   }
 
   return (
