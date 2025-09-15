@@ -17,13 +17,13 @@ api.interceptors.request.use(
 
     // Log request in development
     if (process.env.NODE_ENV === "development") {
-      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`)
+      console.log(` API Request: ${config.method?.toUpperCase()} ${config.url}`)
     }
 
     return config
   },
   (error) => {
-    console.error("❌ Request Error:", error)
+    console.error(" Request Error:", error)
     return Promise.reject(error)
   },
 )
@@ -36,7 +36,7 @@ api.interceptors.response.use(
 
     // Log response in development
     if (process.env.NODE_ENV === "development") {
-      console.log(`✅ API Response: ${response.status} ${response.config.url} (${duration}ms)`)
+      console.log(` API Response: ${response.status} ${response.config.url} (${duration}ms)`)
     }
 
     return response
@@ -47,7 +47,7 @@ api.interceptors.response.use(
 
     // Log error in development
     if (process.env.NODE_ENV === "development") {
-      console.error(`❌ API Error: ${error.response?.status || "Network"} ${error.config?.url} (${duration}ms)`)
+      console.error(`API Error: ${error.response?.status || "Network"} ${error.config?.url} (${duration}ms)`)
     }
 
     // Handle different error types
@@ -79,7 +79,7 @@ api.interceptors.response.use(
       }
     } else if (error.request) {
       // Network error
-      error.userMessage = "Network error. Please check your connection and try again."
+      error.userMessage = ""
     } else {
       // Other error
       error.userMessage = "An unexpected error occurred. Please try again."
